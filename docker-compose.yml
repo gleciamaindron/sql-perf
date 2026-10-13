@@ -1,0 +1,42 @@
+# Module Optimisation SQL — PostgreSQL 16 + pgAdmin
+# Usage : docker compose up -d   (dans le dossier qui contient ce fichier et le dossier sql/)
+services:
+  postgres:
+    image: postgres:16
+    container_name: pgperf
+    environment:
+      POSTGRES_PASSWORD: postgres
+      TZ: Europe/Paris
+      PGTZ: Europe/Paris
+    command:
+      - postgres
+      - -c
+      - shared_preload_libraries=pg_stat_statements
+      - -c
+      - pg_stat_statements.track=top
+      - -c
+      - shared_buffers=512MB
+      - -c
+      - timezone=Europe/Paris
+    shm_size: 1g
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./sql:/sql
+      - ./sql/00_init_extensions.sql:/docker-entrypoint-initdb.d/00_init_extensions.sql:ro
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: pgperf_admin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: etudiant@nexa.fr
+      PGADMIN_DEFAULT_PASSWORD: nexa
+      PGADMIN_CONFIG_SERVER_MODE: "False"
+    ports:
+      - "5050:80"
+    depends_on:
+      - postgres
+
+volumes:
+  pgdata:
